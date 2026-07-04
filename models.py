@@ -10,80 +10,77 @@ from datetime import datetime, timezone
 from app import db
 
 
-def generate_uuid():
-    return str(uuid.uuid4())
+def generateUuid(): return str(uuid.uuid4())
 
 
 class User(db.Model):
-    id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+  id = db.Column(db.String(36), primary_key=True, default=generateUuid)
+  username = db.Column(db.String(64), unique=True, nullable=False)
+  email = db.Column(db.String(120), unique=True, nullable=False)
+  createdAt = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    collection_entries = db.relationship("CollectionEntry", backref="user", lazy=True)
+  collectionEntries = db.relationship("CollectionEntry", backref="user", lazy=True)
 
-    def to_dict(self):
-        return {"id": self.id, "username": self.username, "email": self.email}
+  def to_dict(self):
+    return {"id": self.id, "username": self.username, "email": self.email}
 
 
 class Film(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String(200), nullable=False)
-    year = db.Column(db.Integer, nullable=True)
-    director = db.Column(db.String(200), nullable=True)
-    genre = db.Column(db.String(100), nullable=True)
-    poster_url = db.Column(db.String(500), nullable=True)
-    average_rating = db.Column(db.Float, default=0.0)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  title = db.Column(db.String(200), nullable=False)
+  year = db.Column(db.Integer, nullable=True)
+  director = db.Column(db.String(200), nullable=True)
+  genre = db.Column(db.String(100), nullable=True)
+  posterUrl = db.Column(db.String(500), nullable=True)
+  averageRating = db.Column(db.Float, default=0.0)
 
-    collection_entries = db.relationship("CollectionEntry", backref="film", lazy=True)
+  collectionEntries = db.relationship("CollectionEntry", backref="film", lazy=True)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "year": self.year,
-            "director": self.director,
-            "genre": self.genre,
-            "poster_url": self.poster_url,
-            "average_rating": self.average_rating,
-        }
+  def to_dict(self):
+    return {
+      "id": self.id,
+      "title": self.title,
+      "year": self.year,
+      "director": self.director,
+      "genre": self.genre,
+      "poster_url": self.posterUrl,
+      "average_rating": self.averageRating,
+    }
 
 
 class CollectionEntry(db.Model):
-    """Represents a film a user has already watched and logged."""
-    id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
-    user_id = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
-    film_id = db.Column(db.Integer, db.ForeignKey("film.id"), nullable=False)
-    date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    rating = db.Column(db.Integer, nullable=True)  # 1–5, optional
+  """Represents a film a user has already watched and logged."""
+  id = db.Column(db.String(36), primary_key=True, default=generateUuid)
+  userId = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
+  filmId = db.Column(db.Integer, db.ForeignKey("film.id"), nullable=False)
+  dateAdded = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+  rating = db.Column(db.Integer, nullable=True)  # 1–5, optional
 
-    __table_args__ = (
-        db.UniqueConstraint("user_id", "film_id", name="unique_user_film_collection"),
-    )
+  __table_args__ = (db.UniqueConstraint("userId", "filmId", name="unique_user_film_collection"),)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "film_id": self.film_id,
-            "date_added": self.date_added.isoformat(),
-            "rating": self.rating,
-        }
+  def to_dict(self):
+    return {
+      "id": self.id,
+      "user_id": self.userId,
+      "film_id": self.filmId,
+      "date_added": self.dateAdded.isoformat(),
+      "rating": self.rating,
+    }
 
 
 class WatchlistEntry(db.Model):
-    """Represents a film a user wants to watch (saved for later)."""
-    id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
-    user_id = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
-    film_id = db.Column(db.Integer, db.ForeignKey("film.id"), nullable=False)
-    date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    public = db.Column(db.Boolean, default=True)
+  """Represents a film a user wants to watch (saved for later)."""
+  id = db.Column(db.String(36), primary_key=True, default=generateUuid)
+  userId = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
+  filmId = db.Column(db.Integer, db.ForeignKey("film.id"), nullable=False)
+  dateAdded = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+  public = db.Column(db.Boolean, default=True)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "film_id": self.film_id,
-            "date_added": self.date_added.isoformat(),
-            "public": self.public,
-        }
+  def to_dict(self):
+    return {
+      "id": self.id,
+      "user_id": self.userId,
+      "film_id": self.filmId,
+      "date_added": self.dateAdded.isoformat(),
+      "public": self.public,
+    }
