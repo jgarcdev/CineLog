@@ -9,7 +9,7 @@ from models import Film, WatchlistEntry
 from services.collectionService import FilmNotFoundError
 
 
-def saveToWatchlist(userId, filmId):
+def addToWatchlist(userId, filmId):
   """
   Save a film to a user's watchlist.
 
