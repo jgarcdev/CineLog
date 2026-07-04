@@ -47,6 +47,21 @@ def sampleFilm(app):
     return film.id
 
 
+# ── Deduplication ────────────────────────────────────────────────────────────
+
+def test_addToWatchlistDuplicateRaises(app, sampleUser, sampleFilm):
+  """
+  Adding the same film twice should raise AlreadyInWatchlistError.
+  """
+  from services.watchlistService import AlreadyInWatchlistError
+
+  with app.app_context():
+    entry = addToWatchlist(userId=sampleUser, filmId=sampleFilm)
+    assert entry is not None
+
+    with pytest.raises(AlreadyInWatchlistError):
+      addToWatchlist(userId=sampleUser, filmId=sampleFilm)
+
 # ── Nonexistent film ─────────────────────────────────────────────────────────
 
 def test_addToWatchlistNonexistentFilmRaises(app, sampleUser):
