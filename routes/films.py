@@ -16,7 +16,15 @@ filmsBp = Blueprint("films", __name__)
 def listFilms():
   """
   GET /films/
+@filmsBp.route("/", methods=["GET"])
+def listFilms():
+  """
+  GET /films/
 
+  Returns a list of all films. Supports optional ?genre= and ?year= query params.
+  """
+  genre = request.args.get("genre")
+  year = request.args.get("year", type=int)
   Returns a list of all films. Supports optional ?genre= and ?year= query params.
   """
   genre = request.args.get("genre")
@@ -35,7 +43,17 @@ def listFilms():
 def getFilm(filmId):
   """
   GET /films/<film_id>
+@filmsBp.route("/<film_id>", methods=["GET"])
+def getFilm(filmId):
+  """
+  GET /films/<film_id>
 
+  Returns a single film by its UUID.
+  """
+  film = Film.query.get(filmId)
+  if film is None: return jsonify({"error": "Film not found"}), 404
+
+  return jsonify(film.to_dict())
   Returns a single film by its UUID.
   """
   film = Film.query.get(filmId)
