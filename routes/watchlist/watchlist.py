@@ -25,11 +25,11 @@ def addFilm(userId):
   """
   POST /watchlist/<user_id>/add
 
-  Body: { "film_id": <int> }
+  Body: { "film_id": <int>, "public": <bool, optional> }
   """
   data = request.get_json()
   if not data or "film_id" not in data: return jsonify({"error": "film_id is required"}), 400
 
-  entry = addToWatchlist(userId=userId, filmId=data["film_id"])
+  entry = addToWatchlist(userId=userId, filmId=data["film_id"], public=data.get("public", True))
 
   return jsonify(entry.to_dict()), 201

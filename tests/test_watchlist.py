@@ -67,10 +67,28 @@ def test_addToWatchlistDuplicateRaises(app, sampleUser, sampleFilm):
 
 def test_addToWatchlistNonexistentFilmRaises(app, sampleUser):
   """
-  Adding a film_id that doesn't exist in the database should raise FilmNotFoundError, not a database integrity error.
+  Adding a filmId that doesn't exist in the database should raise FilmNotFoundError, not a database integrity error.
   """
   with app.app_context():
     fakeFilmId = 202072
 
     with pytest.raises(FilmNotFoundError):
       addToWatchlist(userId=sampleUser, filmId=fakeFilmId)
+
+# ── Visibility ───────────────────────────────────────────────────────────────
+
+def test_addToWatchlistPublicDefaultsTrue(app, sampleUser, sampleFilm):
+  """
+  Not passing `public` should default the entry to public.
+  """
+  with app.app_context():
+    entry = addToWatchlist(userId=sampleUser, filmId=sampleFilm)
+    assert entry.public is True
+
+def test_addToWatchlistPublicCanBeSetFalse(app, sampleUser, sampleFilm):
+  """
+  Passing `public=False` should save the entry as private.
+  """
+  with app.app_context():
+    entry = addToWatchlist(userId=sampleUser, filmId=sampleFilm, public=False)
+    assert entry.public is False
