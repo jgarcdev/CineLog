@@ -19,13 +19,13 @@ class NotInWatchlistError(Exception):
   """Raised when trying to remove a film that isn't in the watchlist."""
   pass
 
-def addToWatchlist(userId:str, filmId:int, public:bool = True) -> WatchlistEntry:
+def addToWatchlist(userId:str, filmId:str, public:bool = True) -> WatchlistEntry:
   """
   Save a film to a user's watchlist.
 
   Args:
     userId (str): UUID of the user.
-    filmId (int): ID of the film. (Note: integer — pre-refactor)
+    filmId (str): UUID of the film.
     public (bool): Whether the entry is visible to other users. Defaults to True.
 
   Returns:
@@ -47,13 +47,13 @@ def addToWatchlist(userId:str, filmId:int, public:bool = True) -> WatchlistEntry
 
   return entry
 
-def removeFromWatchlist(userId:str, filmId:int) -> bool:
+def removeFromWatchlist(userId:str, filmId:str) -> bool:
   """
   Remove a film from a user's watchlist.
 
   Args:
     userId (str): UUID of the user.
-    filmId (int): ID of the film.
+    filmId (str): UUID of the film.
 
   Returns:
     bool: True if the removal was successful, False otherwise.

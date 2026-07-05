@@ -27,7 +27,7 @@ class User(db.Model):
 
 
 class Film(db.Model):
-  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+  id = db.Column(db.String(36), primary_key=True, default=generateUuid)
   title = db.Column(db.String(200), nullable=False)
   year = db.Column(db.Integer, nullable=True)
   director = db.Column(db.String(200), nullable=True)
@@ -53,7 +53,7 @@ class CollectionEntry(db.Model):
   """Represents a film a user has already watched and logged."""
   id = db.Column(db.String(36), primary_key=True, default=generateUuid)
   userId = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
-  filmId = db.Column(db.Integer, db.ForeignKey("film.id"), nullable=False)
+  filmId = db.Column(db.String(36), db.ForeignKey("film.id"), nullable=False)
   dateAdded = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
   rating = db.Column(db.Integer, nullable=True)  # 1–5, optional
 
@@ -73,7 +73,7 @@ class WatchlistEntry(db.Model):
   """Represents a film a user wants to watch (saved for later)."""
   id = db.Column(db.String(36), primary_key=True, default=generateUuid)
   userId = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
-  filmId = db.Column(db.Integer, db.ForeignKey("film.id"), nullable=False)
+  filmId = db.Column(db.String(36), db.ForeignKey("film.id"), nullable=False)
   dateAdded = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
   public = db.Column(db.Boolean, default=True)
 

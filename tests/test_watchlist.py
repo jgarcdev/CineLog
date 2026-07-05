@@ -68,7 +68,7 @@ def test_addToWatchlistNonexistentFilmRaises(app, sampleUser):
   Adding a filmId that doesn't exist in the database should raise FilmNotFoundError, not a database integrity error.
   """
   with app.app_context():
-    fakeFilmId = 202072
+    fakeFilmId = "00000000-0000-0000-0000-000000000000"
 
     with pytest.raises(FilmNotFoundError):
       addToWatchlist(userId=sampleUser, filmId=fakeFilmId)
@@ -118,7 +118,7 @@ def test_removeFromWatchlistNonexistentFilmRaises(app, sampleUser):
   Removing a film that isn't in the watchlist should raise NotInWatchlistError.
   """
   with app.app_context():
-    fakeFilmId = 202072
+    fakeFilmId = "00000000-0000-0000-0000-000000000000"
 
     with pytest.raises(NotInWatchlistError):
       removeFromWatchlist(userId=sampleUser, filmId=fakeFilmId)

@@ -42,7 +42,7 @@ def addToCollection(userId:str, filmId:str, rating=None) -> CollectionEntry:
     FilmNotFoundError: If filmId does not exist.
     AlreadyInCollectionError: If the film is already in the user's collection.
     """
-  film = db.session.get(Film, filmId)
+  film = Film.query.get(filmId)
   if film is None: raise FilmNotFoundError(f"No film found with id '{filmId}'")
 
   existing = CollectionEntry.query.filter_by(userId=userId, filmId=filmId).first()
