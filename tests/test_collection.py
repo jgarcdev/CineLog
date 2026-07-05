@@ -7,9 +7,10 @@ before writing your own tests for the watchlist feature (see Comment 4).
 """
 
 import pytest
+
 from app import createApp, db
 from models import User, Film, CollectionEntry
-from services.collection_service import (
+from services.collectionService import (
   addToCollection,
   removeFromCollection,
   getCollection,
@@ -31,6 +32,16 @@ def app():
     yield app
     db.session.remove()
     db.drop_all()
+  """Create an isolated test app with an in-memory database."""
+  app = createApp(config={
+    "TESTING": True,
+    "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+  })
+  with app.app_context():
+    db.create_all()
+    yield app
+    db.session.remove()
+    db.drop_all()
 
 
 @pytest.fixture
@@ -40,7 +51,6 @@ def sampleUser(app):
     user = User(username="testuser", email="test@example.com")
     db.session.add(user)
     db.session.commit()
-
     return user.id
 
 
@@ -51,7 +61,6 @@ def sampleFilm(app):
     film = Film(title="Paddington 2", year=2017, genre="Comedy")
     db.session.add(film)
     db.session.commit()
-
     return film.id
 
 
@@ -63,14 +72,23 @@ def test_addToCollectionCreatesEntry(app, sampleUser, sampleFilm):
   """
   with app.app_context():
     entry = addToCollection(userId=sampleUser, filmId=sampleFilm)
+def test_addToCollectionCreatesEntry(app, sampleUser, sampleFilm):
+  """
+  Adding a valid film should create a CollectionEntry in the database.
+  """
+  with app.app_context():
+    entry = addToCollection(userId=sampleUser, filmId=sampleFilm)
 
+    assert entry is not None
+    assert entry.userId == sampleUser
+    assert entry.filmId == sampleFilm
     assert entry is not None
     assert entry.userId == sampleUser
     assert entry.filmId == sampleFilm
 
     # Verify it persisted
-    in_db = CollectionEntry.query.filter_by(userId=sampleUser, filmId=sampleFilm).first()
-    assert in_db is not None
+    inDb = CollectionEntry.query.filter_by(userId=sampleUser, filmId=sampleFilm).first()
+    assert inDb is not None
 
 
 # ── Deduplication ────────────────────────────────────────────────────────────
@@ -82,10 +100,22 @@ def test_addToCollectionDuplicateRaises(app, sampleUser, sampleFilm):
   """
   with app.app_context():
     addToCollection(userId=sampleUser, filmId=sampleFilm)
+def test_addToCollectionDuplicateRaises(app, sampleUser, sampleFilm):
+  """
+  Adding the same film twice should raise AlreadyInCollectionError,
+  not silently create a duplicate entry.
+  """
+  with app.app_context():
+    addToCollection(userId=sampleUser, filmId=sampleFilm)
 
     with pytest.raises(AlreadyInCollectionError):
       addToCollection(userId=sampleUser, filmId=sampleFilm)
+    with pytest.raises(AlreadyInCollectionError):
+      addToCollection(userId=sampleUser, filmId=sampleFilm)
 
+    # Confirm only one entry exists
+    count = CollectionEntry.query.filter_by(userId=sampleUser, filmId=sampleFilm).count()
+    assert count == 1
     # Confirm only one entry exists
     count = CollectionEntry.query.filter_by(userId=sampleUser, filmId=sampleFilm).count()
     assert count == 1
@@ -100,16 +130,25 @@ def test_addToCollectionNonexistentFilmRaises(app, sampleUser):
   """
   with app.app_context():
     fakeFilmId = "00000000-0000-0000-0000-000000000000"
+def test_addToCollectionNonexistentFilmRaises(app, sampleUser):
+  """
+  Adding a film_id that doesn't exist in the database should raise
+  FilmNotFoundError, not a database integrity error.
+  """
+  with app.app_context():
+    fakeFilmId = "00000000-0000-0000-0000-000000000000"
 
+    with pytest.raises(FilmNotFoundError):
+      addToCollection(userId=sampleUser, filmId=fakeFilmId)
     with pytest.raises(FilmNotFoundError):
       addToCollection(userId=sampleUser, filmId=fakeFilmId)
 
 
-# ── get_collection sort order ────────────────────────────────────────────────
+# ── getCollection sort order ────────────────────────────────────────────────
 
 def test_getCollectionReturnsNewestFirst(app, sampleUser):
   """
-  get_collection() should return films sorted by date_added descending
+  getCollection() should return films sorted by date_added descending
   (most recently added first).
   """
   with app.app_context():
@@ -120,7 +159,13 @@ def test_getCollectionReturnsNewestFirst(app, sampleUser):
     filmB = Film(title="Blade Runner", year=1982, genre="Sci-Fi")
     db.session.add_all([filmA, filmB])
     db.session.commit()
+    filmA = Film(title="Alien", year=1979, genre="Horror")
+    filmB = Film(title="Blade Runner", year=1982, genre="Sci-Fi")
+    db.session.add_all([filmA, filmB])
+    db.session.commit()
 
+    earlier = datetime.now(timezone.utc) - timedelta(days=5)
+    later = datetime.now(timezone.utc)
     earlier = datetime.now(timezone.utc) - timedelta(days=5)
     later = datetime.now(timezone.utc)
 
@@ -128,10 +173,19 @@ def test_getCollectionReturnsNewestFirst(app, sampleUser):
     entryB = CollectionEntry(userId=sampleUser, filmId=filmB.id, dateAdded=later)
     db.session.add_all([entryA, entryB])
     db.session.commit()
+    entryA = CollectionEntry(userId=sampleUser, filmId=filmA.id, dateAdded=earlier)
+    entryB = CollectionEntry(userId=sampleUser, filmId=filmB.id, dateAdded=later)
+    db.session.add_all([entryA, entryB])
+    db.session.commit()
 
     collection = getCollection(sampleUser)
     titles = [f["title"] for f in collection]
+    collection = getCollection(sampleUser)
+    titles = [f["title"] for f in collection]
 
+    # Blade Runner was added later, so it should come first
+    assert titles[0] == "Blade Runner"
+    assert titles[1] == "Alien"
     # Blade Runner was added later, so it should come first
     assert titles[0] == "Blade Runner"
     assert titles[1] == "Alien"
