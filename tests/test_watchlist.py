@@ -8,8 +8,8 @@ import pytest
 
 from app import createApp, db
 from models import User, Film
-from services.watchlistService import addToWatchlist
-from services.collectionService import FilmNotFoundError
+from services.watchlistService import addToWatchlist, removeFromWatchlist, getWatchlist
+from services.watchlistService import AlreadyInWatchlistError, FilmNotFoundError, NotInWatchlistError
 
 
 @pytest.fixture
@@ -54,8 +54,6 @@ def test_addToWatchlistDuplicateRaises(app, sampleUser, sampleFilm):
   """
   Adding the same film twice should raise AlreadyInWatchlistError.
   """
-  from services.watchlistService import AlreadyInWatchlistError
-
   with app.app_context():
     entry = addToWatchlist(userId=sampleUser, filmId=sampleFilm)
     assert entry is not None
@@ -92,3 +90,35 @@ def test_addToWatchlistPublicCanBeSetFalse(app, sampleUser, sampleFilm):
   with app.app_context():
     entry = addToWatchlist(userId=sampleUser, filmId=sampleFilm, public=False)
     assert entry.public is False
+
+# --- Removal ───────────────────────────────────────────────────────────────
+
+def test_removeFromWatchlistRemovesEntry(app, sampleUser, sampleFilm):
+  """
+  Removing a film from the watchlist should delete the entry.
+  """
+  with app.app_context():
+    addToWatchlist(userId=sampleUser, filmId=sampleFilm)
+
+    # Confirm it exists
+    entry = db.session.query(Film).filter_by(id=sampleFilm).first()
+    assert entry is not None
+
+    # Remove it
+    result = removeFromWatchlist(userId=sampleUser, filmId=sampleFilm)
+    assert result is True
+
+    # Confirm it's gone
+    # Check the watchlist entry
+    entry = getWatchlist(userId=sampleUser)
+    assert entry == []
+
+def test_removeFromWatchlistNonexistentFilmRaises(app, sampleUser):
+  """
+  Removing a film that isn't in the watchlist should raise NotInWatchlistError.
+  """
+  with app.app_context():
+    fakeFilmId = 202072
+
+    with pytest.raises(NotInWatchlistError):
+      removeFromWatchlist(userId=sampleUser, filmId=fakeFilmId)
