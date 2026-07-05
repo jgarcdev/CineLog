@@ -1,8 +1,10 @@
 """app.py — CineLog Flask application factory"""
 
+import os
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import os
+
 
 db = SQLAlchemy()
 

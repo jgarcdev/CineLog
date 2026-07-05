@@ -7,6 +7,7 @@ before writing your own tests for the watchlist feature (see Comment 4).
 """
 
 import pytest
+
 from app import createApp, db
 from models import User, Film, CollectionEntry
 from services.collectionService import (

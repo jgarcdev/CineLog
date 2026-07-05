@@ -4,6 +4,8 @@ services/watchlist_service.py — CineLog (feature/watchlist branch)
 Business logic for the watchlist feature.
 """
 
+from typing import Any
+
 from app import db
 from models import Film, WatchlistEntry
 from services.collectionService import FilmNotFoundError
@@ -13,7 +15,7 @@ class AlreadyInWatchlistError(Exception):
   """Raised when a film is already in the user's watchlist."""
   pass
 
-def addToWatchlist(userId, filmId):
+def addToWatchlist(userId:str, filmId:int) -> WatchlistEntry:
   """
   Save a film to a user's watchlist.
 
@@ -25,7 +27,7 @@ def addToWatchlist(userId, filmId):
     WatchlistEntry: The newly created entry.
 
   Raises:
-    FilmNotFoundError: If film_id does not exist.
+    FilmNotFoundError: If filmId does not exist.
   """
   film = db.session.get(Film, filmId)
   if film is None: raise FilmNotFoundError(f"No film found with id '{filmId}'")
@@ -41,7 +43,7 @@ def addToWatchlist(userId, filmId):
   return entry
 
 
-def getWatchlist(userId):
+def getWatchlist(userId:str) -> list[dict[str, Any]]:
   """
   Return all films on a user's watchlist.
 
@@ -51,7 +53,7 @@ def getWatchlist(userId):
   Returns:
     list[dict]: List of film dicts with watchlist metadata attached.
   """
-  entries = (
+  entries:list[WatchlistEntry] = (
     WatchlistEntry.query
       .filter_by(userId=userId)
       .join(Film)
@@ -59,10 +61,10 @@ def getWatchlist(userId):
       .all()
   )
 
-  result = []
+  result:list[dict[str, Any]] = []
   for entry in entries:
-    filmDict = entry.film.to_dict()
-    filmDict["date_added"] = entry.date_added.isoformat()
+    filmDict:dict[str, Any] = entry.film.to_dict()
+    filmDict["date_added"] = entry.dateAdded.isoformat()
     filmDict["public"] = entry.public
     result.append(filmDict)
 

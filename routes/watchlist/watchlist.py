@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify, request
 from services.watchlistService import addToWatchlist, getWatchlist
 from services.collectionService import FilmNotFoundError
 
+
 watchlistBp = Blueprint("watchlist", __name__)
 
 

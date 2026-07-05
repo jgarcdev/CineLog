@@ -5,6 +5,7 @@ Tests for the watchlist service.
 """
 
 import pytest
+
 from app import createApp, db
 from models import User, Film
 from services.watchlistService import addToWatchlist

@@ -5,6 +5,8 @@ Business logic for managing a user's film collection (films they've already watc
 All functions follow the project's verb_to_noun naming convention.
 """
 
+from typing import Any
+
 from app import db
 from models import Film, CollectionEntry
 
@@ -24,7 +26,7 @@ class NotInCollectionError(Exception):
   pass
 
 
-def addToCollection(userId, filmId, rating=None):
+def addToCollection(userId:str, filmId:str, rating=None) -> CollectionEntry:
   """
   Add a film to a user's collection (i.e., mark it as watched).
 
@@ -36,9 +38,9 @@ def addToCollection(userId, filmId, rating=None):
   Returns:
     CollectionEntry: The newly created entry.
 
-    Raises:
-        FilmNotFoundError: If filmId does not exist.
-        AlreadyInCollectionError: If the film is already in the user's collection.
+  Raises:
+    FilmNotFoundError: If filmId does not exist.
+    AlreadyInCollectionError: If the film is already in the user's collection.
     """
   film = db.session.get(Film, filmId)
   if film is None: raise FilmNotFoundError(f"No film found with id '{filmId}'")
@@ -53,7 +55,7 @@ def addToCollection(userId, filmId, rating=None):
   return entry
 
 
-def removeFromCollection(userId, filmId):
+def removeFromCollection(userId:str, filmId:str) -> bool:
   """
   Remove a film from a user's collection.
 
@@ -76,25 +78,24 @@ def removeFromCollection(userId, filmId):
   return True
 
 
-def getCollection(userId):
+def getCollection(userId:str) -> list[dict[str, Any]]:
   """
   Return all films in a user's collection, sorted by date added (newest first).
 
   Args:
-      user_id (str): UUID of the user.
+    userId (str): UUID of the user.
 
   Returns:
-      list[dict]: List of film dicts (not CollectionEntry objects) with
-                  the date_added and rating from the entry attached.
+    list[dict]: List of film dicts (not CollectionEntry objects) with the date_added and rating from the entry attached.
   """
-  entries = (
+  entries:list[CollectionEntry] = (
     CollectionEntry.query
       .filter_by(userId=userId)
       .order_by(CollectionEntry.dateAdded.desc())
       .all()
   )
 
-  result = []
+  result:list[dict[str,Any]] = []
   for entry in entries:
     filmDict = entry.film.to_dict()
     filmDict["date_added"] = entry.dateAdded.isoformat()

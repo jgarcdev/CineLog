@@ -14,6 +14,7 @@ from services.collectionService import (
   NotInCollectionError,
 )
 
+
 collectionBp = Blueprint("collection", __name__)
 
 
